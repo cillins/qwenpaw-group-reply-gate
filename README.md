@@ -47,3 +47,7 @@ qwenpaw plugin install --force ./plugins/channel/matrix
 ## 测试
 
 在装有 QwenPaw 2.3.0.post1 的 Python 环境中运行 `python -m unittest discover -s tests -v`。测试用真实 QwenPaw 运行时验证静默分支不会创建主 Agent，并用本地 HTTP 服务验证宿主的 TypeSafe 客户端；无需云端密钥。
+
+## 许可证
+
+本项目采用 [Apache License 2.0](LICENSE)。Matrix 兼容补丁基于 QwenPaw 2.3.0.post1，保留上游版权声明：Copyright 2025 The QwenPaw Authors。补丁新增了对单个账号提及的识别和相应测试。[QwenPaw 上游许可证](https://github.com/agentscope-ai/QwenPaw/blob/v2.3.0.post1/LICENSE)
