@@ -1,0 +1,68 @@
+diff --git a/plugins/channel/matrix/qwenpaw_channel_matrix/platform.py b/plugins/channel/matrix/qwenpaw_channel_matrix/platform.py
+index e043af9..2f6c661 100644
+--- a/plugins/channel/matrix/qwenpaw_channel_matrix/platform.py
++++ b/plugins/channel/matrix/qwenpaw_channel_matrix/platform.py
+@@ -1695,6 +1695,13 @@ class MatrixPlatform:
+                 return bool(room_cfg["requireMention"])
+         return True
+ 
++    def _self_mentioned(self, event: Any) -> bool:
++        """Preserve individual addressing independently of room admission."""
++        mentions = event.source.get("content", {}).get("m.mentions")
++        if isinstance(mentions, dict):
++            return self._user_id in (mentions.get("user_ids") or [])
++        return self._was_mentioned(event, getattr(event, "body", "") or "")
++
+     def _was_mentioned(self, event: Any, text: str) -> bool:
+         if not self._user_id:
+             return False
+@@ -2176,6 +2183,7 @@ class MatrixPlatform:
+                 "room_id": room_id,
+                 "is_dm": is_dm,
+                 "is_group": not is_dm,
++                "self_mentioned": self._self_mentioned(event),
+                 "worker_name": worker_name,
+                 "event_id": event.event_id,
+                 "sender_id": sender_id,
+@@ -2453,6 +2461,7 @@ class MatrixPlatform:
+                 "room_id": room_id,
+                 "is_dm": is_dm,
+                 "is_group": not is_dm,
++                "self_mentioned": self._self_mentioned(event),
+                 "worker_name": worker_name,
+                 "event_id": event.event_id,
+                 "sender_id": sender_id,
+@@ -2570,6 +2579,7 @@ class MatrixPlatform:
+                 "room_id": room_id,
+                 "is_dm": is_dm,
+                 "is_group": not is_dm,
++                "self_mentioned": self._self_mentioned(event),
+                 "worker_name": worker_name,
+                 "event_id": event.event_id,
+                 "sender_id": sender_id,
+diff --git a/tests/unit/channels/test_matrix.py b/tests/unit/channels/test_matrix.py
+index 50bd34d..953b69e 100644
+--- a/tests/unit/channels/test_matrix.py
++++ b/tests/unit/channels/test_matrix.py
+@@ -39,6 +39,21 @@ def test_matrix_requirements_match_channels_extra():
+     assert requirements <= declared
+ 
+ 
++@pytest.mark.parametrize(("mentions", "expected"), [
++    ({"user_ids": [BOT]}, True),
++    ({"user_ids": [SENDER]}, False),
++    ({"room": True}, False),
++])
++def test_individual_mention_survives_channel_admission(mentions, expected):
++    platform = object.__new__(MatrixPlatform)
++    platform._user_id = BOT
++    event = matrix_module.RoomMessageText.from_dict({
++        **text_event("看一下", "$mention"),
++        "content": {"msgtype": "m.text", "body": "看一下", "m.mentions": mentions},
++    })
++    assert platform._self_mentioned(event) is expected
++
++
+ def text_event(body, event_id, sender=SENDER):
+     return {
+         "type": "m.room.message",

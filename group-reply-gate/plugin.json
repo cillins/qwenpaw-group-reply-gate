@@ -1,0 +1,10 @@
+{
+  "id": "group-reply-gate",
+  "name": "群聊参与判断",
+  "version": "0.1.0",
+  "type": "general",
+  "description": "在主 Agent 启动前，使用当前 Agent 的决策模型判断是否参与群聊。",
+  "author": "AgentMatrix",
+  "entry": {"backend": "main.py"},
+  "qwenpaw_version": {"min": "2.3.0.post1", "max": "2.4.0"}
+}
